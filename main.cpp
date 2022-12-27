@@ -388,7 +388,7 @@ void sort(struct Process P[]){
         for (int j = i+1 ; j < no_of_process;++j){
             if (P[i].AT > P[j].AT){
                 swap(P[i], P[j]);
-                swap(P[i].pid, P[j].pid);
+                // swap(P[i].pid, P[j].pid);
             }
         }
     }
@@ -442,8 +442,6 @@ int main(){
     return 0;
 }
 //________________________________________________________________________________________________________________________________________
-
-
 
 void MLFQ(){
         int terminated=0;
@@ -681,7 +679,7 @@ void MLFQ(){
         for(auto el :mp){
             printElement(el.first,numwidth);printElement(el.second.at,numwidth);printElement(el.second.rt,numwidth);printElement(el.second.ct,numwidth);printElement(el.second.tat,numwidth);
             avgTurn+=el.second.tat;
-            avgResponse=el.second.rt;
+            avgResponse+=el.second.rt;
             cout<<nl<<nl;
         }
         cout<<nl<<"The Average Turnarround Time = "<<avgTurn/n<<nl;
@@ -709,7 +707,10 @@ void RR(){
 		} 
 		printf("\n");
 		int counter=0;
-		while(n!=nprocess){
+        runningprocess = dequeueready();
+        counter = runningprocess->arrivaltime;
+        ready1th(runningprocess);
+        while(n!=nprocess){
 			
 			runningprocess = dequeueready();
 			
@@ -766,7 +767,7 @@ void RR(){
 					blocked1th(blockedprocess);
 				}
 			}
-			if(Ready==NULL && Blocked==NULL) break;
+			// if(Ready==NULL && Blocked==NULL) break;
 			counter++;
 		}
 		printf("\n\n");
@@ -908,7 +909,7 @@ void STCF_algorithm(){
     }
     printf("Average Turnaround Time = %0.2f\n",avg_turnaround_time);
     printf("Average Response Time = %0.2f\n", avg_response_time);
-
+    return ;
 }
 //________________________________________________________________________________________________________________________________________
 void SJF(){
@@ -940,9 +941,6 @@ void SJF(){
                 }
             }
     }
-        
-        
-    
         processSJF[0].ct = processSJF[0].at + processSJF[0].inst;
         processSJF[0].tat = processSJF[0].inst;
         printf("process in order : %d\n", processSJF[0].p);
@@ -1005,6 +1003,7 @@ void SJF(){
     
         printf("aAverage waiting time : %f\n", awt / number);
         printf("average turn around time : %f\n", atat / number);
+        return;
 }
 //______________________FCFS_____________________________________________________________________________________________________________
 
@@ -1123,4 +1122,5 @@ void FCFS(){
     printf("AVG_Response_Time = %.3f\n",(float)AVG_Response_Time/no_of_process);
     printf("AVG_Turnaround_Time = %.3f\n",(float) AVG_Turnaround_Time/no_of_process);
     printf("\n");
+    return;
 }
