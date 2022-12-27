@@ -188,8 +188,6 @@ void get_input_RR(){
 
 
 
-
-
 //__________________________________________________________MLFQ____________________________________________________________________________
 
 typedef struct process
@@ -410,7 +408,7 @@ template<typename T> void printElement(T t, const int& width)
 int main(){
     FIO
     printf("\nScheduling Algorithms\n");
-    printf("     1 -> Multi-Level Feedback Queue \n     2 -> First In First Out\n     3 -> Shortest Job First\n     4 -> Shortest Time-to-Completion First\n     5 -> Round Robin\n");
+    printf("     1 -> Multi-Level Feedback Queue \n     2 -> First In First Out\n     3 -> Shortest Job First\n     4 -> Shortest Time-to-Completion First\n     5 -> Round Robin\n\n");
     printf("     Enter Your Choice: ");
     cin>>schedule;
 
@@ -457,7 +455,7 @@ void MLFQ(){
         write_to_file_randomly();
 
         get_input_MLFQ(mp);
-        printf("number of process: %d | I/O Tiem :%d\n",n,iot);
+        printf("Number of process: %d      |      I/O Tiem :%d\n\n",n,iot);
     //________________________________________________________________________________________________________________________________________
         printElement("PID",nmwidth);printElement("Ins. count",nmwidth);printElement("I/O Prec.",nmwidth);printElement("Arrival",nmwidth);cout<<nl;
         for(auto el: mp){
@@ -466,7 +464,8 @@ void MLFQ(){
         }
         cout<<nl;
     //________________________________________________________________________________________________________________________________________
-        while(terminated < n){                                       
+        while(terminated < n){   
+            cout<<'|';                                    
             int key=0;
             for(auto el : mmp[counter]){            //add all process that come in this moment to ready1
                 ready1.push_back(el);      
@@ -478,9 +477,9 @@ void MLFQ(){
                 key=ready1.front();
                 if( mp[key].rt == -1 )mp[key].rt = counter-mp[key].at;          // calculate resopnse time
 
+                mp[key].tc++;
                 if( rand() % (mp[key].ic) >= (mp[key].iop  * mp[key].ic) / 100 ){       // if ins. is not i/o ins.
                     mp[key].remic--;                           // reduce remaning ins.
-                    mp[key].tc++;
                     if(mp[key].remic<=0){                                     // if process end 
                         ready1.pop_front();
                         mp[key].ct=counter;
@@ -504,8 +503,11 @@ void MLFQ(){
                 }
                 else {                                          // if it is I/O ins.
                     ready1.pop_front();
+                    if(blocked.empty()){           // if the blocked is empty we will reduce ioremic by 1 in the same instance of time(iteration)so wee need to add one to them 
+                        mp[key].ioremic=iot+1;
+                    }
+                    else mp[key].ioremic=iot; 
                     blocked.push_back(key);
-                    mp[key].ioremic=iot;
                     cout<<"P"<<key<<"->IO"<<nl;
                 }   
 
@@ -538,8 +540,11 @@ void MLFQ(){
                 }
                 else {                                          // if it is i/o ins.
                     ready2.pop_front();
+                    if(blocked.empty()){           // if the blocked is empty we will reduce ioremic by 1 in the same instance of time(iteration)so wee need to add one to them 
+                        mp[key].ioremic=iot+1;
+                    }
+                    else mp[key].ioremic=iot; 
                     blocked.push_back(key);
-                    mp[key].ioremic=iot;
                     cout<<"P"<<key<<"->IO"<<nl;
                 } 
             }
@@ -570,8 +575,11 @@ void MLFQ(){
                 }
                 else {                                          // if it is i/o ins.
                     ready3.pop_front();
+                    if(blocked.empty()){           // if the blocked is empty we will reduce ioremic by 1 in the same instance of time(iteration)so wee need to add one to them 
+                        mp[key].ioremic=iot+1;
+                    }
+                    else mp[key].ioremic=iot; 
                     blocked.push_back(key);
-                    mp[key].ioremic=iot;
                     cout<<"P"<<key<<"->IO"<<nl;
                 } 
             }
@@ -582,71 +590,61 @@ void MLFQ(){
             if(!blocked.empty()){
                 int key=blocked.front();
                 mp[key].ioremic--;
-                mp[key].tc++;
                 if(mp[key].ioremic<=0){                     // if it finish the I/O instrunction
                     blocked.pop_front();
                     mp[key].remic--;
                     if(mp[key].remic<=0){                   // check if it is the last instruction in the process
-                        mp[key].ct=counter;
-                        mp[key].tat=counter-mp[key].at+1;
-                        mp[key].flag=1;
+                        mp[key].ct = counter;
+                        mp[key].tat = counter - mp[key].at + 1;
+                        mp[key].flag = 1;
                         terminated++;
                         cout<<nl<<"P"<<key<<"->finish"<<nl;
                     }
                     else{                                  // if not we need to back it to the correct que
-                        if(mp[key].tc > tQue1 + tQue2){             // if the total time consumption is greater than the time slice of que1+que2 then we push it in que3
-                            if(mp[key].level==3){                   // if it was in que 3 before I/O insturction 
-                                if(!ready3.empty()){                // if que3 is not empty push it in the second place 
-                                    auto it=ready3.begin();
-                                    it++;
-                                    ready3.insert(it,key);
+                        if(mp[key].level==1){
+                            if(!ready1.empty()){                // if que3 is not empty push it in the second place 
+                                if(mp[key].BoostOccured==1){        // if this process was in que2 or que3 befor BoostTime
+                                    ready1.push_back(key);
+                                    mp[key].BoostOccured==0;
                                 }
-                                else{                               // else push it in the first space              
-                                    ready3.push_back(key);
-                                }
-                            }
-                            else {                                  //else if it wansn't in que3 before I/O instruction push it back to the end of que3
-                                cout<<nl<<"P"<<key<<" fin IO To Que3"<<nl;
-                                ready3.push_back(key);
-                                mp[key].level=3;
-                            }
-                            mp[key].rrt=0;                          // make the round robin time to 0 so that it will take complete time slice in que3
-                        } 
-                        else if(mp[key].tc>tQue1) {                 //if the total time consumption is greater than the time slice of que1 then we push it in que2
-                            if(mp[key].level==2){
-                                if(!ready2.empty()){
-                                    auto it=ready2.begin();
-                                    it++;
-                                    ready2.insert(it,key);
-                                }
-                                else
-                                    ready2.push_back(key);
-                                
-                            }
-                            else {
-                                ready2.push_back(key);
-                                cout<<nl<<"P"<<key<<" fin IO To Que2"<<nl;
-                                mp[key].level=2;
-                            }
-                        }
-                        else {                                      // else we push it in ready 1
-                            if(mp[key].level==1){
-                                if(!ready1.empty()){
+                                else{
                                     auto it=ready1.begin();
                                     it++;
                                     ready1.insert(it,key);
                                 }
-                                else ready1.push_back(key);
                             }
-                            else{     // if the process was in que2 or que3  but after BoostTime it finish I/O instruction the the time it consume is less than tQue1 then we push it to que1 but in the back
-                                ready1.push_back(key);                                  
-                                cout<<nl<<"P"<<key<<" fin IO To Que1"<<nl;
-                                mp[key].level=1;
+                            else{                               // else push it in the first space              
+                                ready1.push_back(key);
                             }
+                            cout<<nl<<"P"<<key<<" fin I/O back to Que1"<<nl;
                         }
-                    }
+                        else if (mp[key].level==2){
+                            if(!ready2.empty()){                // if que3 is not empty push it in the second place 
+                                auto it=ready2.begin();
+                                it++;
+                                ready2.insert(it,key);
+                            }
+                            else{                               // else push it in the first space              
+                                ready2.push_back(key);
+                            }
+                            cout<<nl<<"P"<<key<<" fin I/O back to Que2"<<nl;
+                        }
+                        else if(mp[key].level==3){                   // if it was in que 3 before I/O insturction 
+                            if(!ready3.empty()){                // if que3 is not empty push it in the second place 
+                                auto it=ready3.begin();
+                                it++;
+                                ready3.insert(it,key);
+                            }
+                            else{                               // else push it in the first space              
+                                ready3.push_back(key);
+                            }
+                            mp[key].rrt=0;   
+                            cout<<nl<<"P"<<key<<" fin I/O back to Que3"<<nl;
+                        }
+                    } 
                 }
             }
+            // }
     //________________________________________________________________________________________________________________________________________
             if((counter+1) % BoostTime == 0){                               
                 cout<<nl<<"BOOST Time"<<nl;
@@ -669,18 +667,25 @@ void MLFQ(){
                 }
                 for(auto el : blocked){
                     mp[el].tc=0;
+                    if(mp[el].level!=1)mp[el].BoostOccured=1;
+                    mp[el].level=1;
+                    
                 }
             }
             counter++;
         }
     //________________________________________________________________________________________________________________________________________
-        cout<<nl;
         printElement("PID",nmwidth);printElement("Arrival",nmwidth);printElement("Response",nmwidth);printElement("Completion",nmwidth);printElement("Turnaround",nmwidth);
         cout<<nl<<nl;
+        float avgTurn=0,avgResponse=0;
         for(auto el :mp){
             printElement(el.first,numwidth);printElement(el.second.at,numwidth);printElement(el.second.rt,numwidth);printElement(el.second.ct,numwidth);printElement(el.second.tat,numwidth);
+            avgTurn+=el.second.tat;
+            avgResponse=el.second.rt;
             cout<<nl<<nl;
         }
+        cout<<nl<<"The Average Turnarround Time = "<<avgTurn/n<<nl;
+        cout<<"The Average Response Time = "<<avgResponse/n;
 }
 //________________________________________________________________________________________________________________________________________
 
