@@ -907,8 +907,8 @@ void STCF_algorithm(){
     for(int i = 0; i < no_of_process; i++) {
         printf("%12d  %12d  %12d %12d  %12d  %12d  %12d\n\n",
             p[i].pid,p[i].arrival_time,p[i].instruction_count,p[i].start_time,
-            p[i].completion_time,p[i].turnaround_time,p[i].response_time);*/
-    }
+            p[i].completion_time,p[i].turnaround_time,p[i].response_time);
+    }*/
     printf("Average Turnaround Time = %0.2f\n",avg_turnaround_time);
     printf("Average Response Time = %0.2f\n", avg_response_time);
 
