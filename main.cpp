@@ -1,4 +1,4 @@
-#include <D:\Documents\C++\asd\stdc++.h>
+#include<bits/stdc++.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
